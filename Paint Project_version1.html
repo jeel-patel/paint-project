@@ -1,0 +1,380 @@
+<html>
+
+<head>
+    <title>Paint Lite</title>
+
+    <style>
+        * {
+            margin: 0px;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        #cnv {
+
+            width: 100%;
+            width: auto;
+            height: 580px;
+            /* height: 1200px; */
+
+            display: flex;
+            margin: auto;
+
+            background-attachment: fixed;
+            background-color: rgb(0, 0, 0);
+        }
+
+        .rect {
+            display: inline;
+
+            position: absolute;
+
+            border-style: solid;
+            border-color: red;
+            border-width: 2px;
+
+            color: red;
+
+            -webkit-user-drag: none;
+            /* border-radius: 50%; */
+            /* z-index:1; */
+        }
+
+        .circle {
+
+            display: inline;
+
+            position: absolute;
+
+            border-style: solid;
+            /* border-style: dotted; */
+            border-color: red;
+            border-width: 2px;
+
+            color: red;
+
+            border-radius: 50%;
+
+            -webkit-user-drag: none;
+        }
+
+        .main_line {
+            display: inline;
+
+            position: absolute;
+
+            transform-origin: 0px 0px;
+
+            border-style: solid;
+            border-color: red;
+            border-width: 0px;
+
+            background-color: red;
+        }
+
+        #rectangle {
+            background-color: red;
+        }
+
+        .controller:active {
+            background-color: red;
+        }
+
+        #footer {
+
+            display: flex;
+            flex-flow: row-reverse;
+
+            justify-content: space-between;
+
+            background-color: black;
+
+            position: sticky;
+            bottom: 0px;
+        }
+    </style>
+</head>
+
+<body onmousemove="counter(event)">
+
+
+    <div id="cnv"></div>
+
+    <div id="footer">
+
+        <button id="click_count" onclick="counter(event)">0 0</button>
+
+        <div id="btn">
+            <button class="controller" id="redo" onclick="rd()">REDO</button>
+            <button class="controller" id="reset">RESET</button>
+            <button class="controller" id="undo" onclick="ud()">UNDO</button>
+        </div>
+
+        <div id="shape">
+            <button id="rectangle" onclick="select('rct')">RECT</button>
+            <button id="cir" onclick="select('crcl')">CIRCLE</button>
+            <button id="lne" onclick="select('ln')">LINE</button>
+        </div>
+
+    </div>
+
+</body>
+
+
+
+<script>
+
+    //this class has methods which takes care of the push and pop feature 
+    var string_array = [];
+    class stack {
+
+        constructor() {
+
+        }
+
+        push(a) {
+            string_array[string_array.length] = a;
+        }
+
+        pop() {
+            string_array.pop();
+        }
+    };
+
+    //all neccessory variable declarations
+    var undo_stack = new stack;
+
+    var xcor, ycor;
+    var caller_id;//=setInterval(continue_draw, 10);
+    var element;
+    var flag = 0;
+
+    var r = 1, c = 0, l = 0;
+
+    //event on mousedown to save the coordinates of cursor
+    document.getElementsByTagName('div')[0].addEventListener('mousedown',
+        function draw() {
+
+            let xy = document.getElementById('click_count').innerText;
+
+            xcor = parseInt(xy);
+
+            ycor = xy.replace(xcor, "");
+
+            ycor = ycor.trim();
+
+            // console.log(xcor + " " + ycor);
+
+            var canvas = document.getElementById('cnv');
+
+            element = document.createElement('div');
+
+            if (r == 1) {
+                element.className = 'rect';
+            }
+            if (c == 1) {
+                element.className = 'circle';
+            }
+            if (l == 1) {
+                element.className = 'main_line';
+
+                // let new_element = document.createElement('div');
+                // new_element.className = 'main_line';
+
+                // console.log('a');
+                // element.appendChild(element);
+                // console.log('b');
+            }
+
+            canvas.appendChild(element);
+
+            continue_draw();
+        });
+
+    // function to continuously draw the shape 
+    function continue_draw() {
+
+        if (flag == 0) {
+            caller_id = setInterval(continue_draw, 20);
+            flag = 1;
+        }
+
+        if (r == 1 || c == 1) {
+            let xy = document.getElementById('click_count').innerText;
+            let xcor1 = parseInt(xy);
+            let ycor1 = xy.replace(xcor1, "");
+
+            ycor1 = ycor1.trim();
+
+            element.style.left = Math.min(xcor1, xcor);
+            element.style.top = Math.min(ycor1, ycor);
+
+            element.style.width = Math.abs(xcor - xcor1);
+            element.style.height = Math.abs(ycor - ycor1);
+        }
+        else {
+            let xy = document.getElementById('click_count').innerText;
+            let xcor1 = parseInt(xy);
+            let ycor1 = xy.replace(xcor1, "");
+
+            ycor1 = ycor1.trim();
+
+            // element.style.left = Math.min(xcor1, xcor);
+            // element.style.top = Math.min(ycor1, ycor);
+
+            element.style.left = xcor;
+            element.style.top = ycor;
+
+            // console.log(element.style.top);
+
+            // element.style.width = Math.abs(xcor - xcor1);
+            // element.style.height = Math.abs(ycor - ycor1);
+
+            let wd = Math.abs(xcor - xcor1);
+            let ht = Math.abs(ycor - ycor1);
+
+            // console.log(wd);
+
+            // element.getElementsByClassName('main_line')[0].style.top = ycor;
+            //  element.getElementsByClassName('main_line')[0].style.left = xcor;
+
+            // console.log(ycor);
+
+            element.style.width = Math.sqrt(parseInt(wd) * parseInt(wd) + parseInt(ht) * parseInt(ht));
+            // console.log(Math.sqrt(parseInt(wd)*parseInt(wd) + parseInt(ht)*parseInt(ht)));
+
+            element.style.height = 2;
+
+            // console.log(element.getElementsByClassName('main_line')[0].style.height);
+
+            let angle = Math.atan(parseInt(ht) / parseInt(wd)) * (180 / Math.PI);
+
+            if ((xcor1 - xcor) < 0 && (ycor1 - ycor) < 0) {
+                angle = Number(angle) + 180;
+                angle = angle + 'deg';
+
+                element.style.transform = `rotate(${angle})`;
+            }
+            else if ((xcor1 - xcor) < 0 && (ycor1 - ycor) > 0) {
+                // let angle = Math.atan(ht/wd) *(180/Math.PI);
+                angle = 180 - Number(angle);
+                angle = angle + 'deg';
+
+                element.style.transform = `rotate(${angle})`;
+            }
+            else if ((xcor1 - xcor) > 0 && (ycor1 - ycor) < 0) {
+                // let angle = Math.atan(ht/wd) *(180/Math.PI);
+                angle = (-1) * Number(angle);
+                angle = angle + 'deg';
+
+                element.style.transform = `rotate(${angle})`;
+            }
+            else {
+                // let angle = Math.atan(ht/wd) * (180/Math.PI);
+                angle = angle + 'deg';
+
+                element.style.transform = `rotate(${angle})`;
+            }
+        }
+    }
+
+    //event when the mouse is released so the continue draw function's interval is removed
+    document.getElementsByTagName('div')[0].addEventListener('mouseup',
+        function final_draw() {
+            flag = 0;
+            clearInterval(caller_id);
+
+            if (l == 1) {
+                // let x = element.getElementsByClassName('main_line')[0];
+
+                // element.remove();
+
+                // document.getElementById('cnv').appendChild(x);
+            }
+        });
+
+    //this function takes care of the x y coordinates of the cursor
+    function counter(event) {
+        document.getElementById('click_count').innerText = `${event.pageX} ${event.pageY}`;
+
+        // document.getElementById('click_count').innerText = `${event.clientX} ${event.clientY}`;
+    }
+
+    //this event clears whole document
+    document.getElementById('reset').addEventListener('click', function rst() {
+
+        Array.from(document.getElementById('cnv').querySelectorAll('div')).forEach(
+            function (e) {
+                e.remove();
+            }
+        );
+
+        string_array = [];
+    });
+
+    //this function takes care of redo feature
+    function rd() {
+        if (document.getElementById('cnv').querySelectorAll('div').length == 0) {
+            return;
+        }
+        let str = document.getElementById('cnv').querySelectorAll('div')[document.getElementById('cnv').querySelectorAll('div').length - 1];
+        console.log(str);
+
+        undo_stack.push(str);
+
+        str.remove();
+    }
+
+    //this function takes care of undo feature
+    function ud() {
+
+        if (string_array.length == 0) {
+            return;
+        }
+        document.getElementById('cnv').appendChild(string_array.pop());
+
+    }
+
+    //this function selects which shape to draw
+    function select(tem) {
+        console.log(tem);
+        if (tem == 'rct') {
+            document.getElementById('rectangle').style.backgroundColor = 'red';
+            document.getElementById('cir').style.backgroundColor = 'white';
+            document.getElementById('lne').style.backgroundColor = 'white';
+
+            r = 1;
+            c = 0;
+            l = 0;
+
+            return;
+        }
+        else if (tem == 'crcl') {
+            document.getElementById('cir').style.backgroundColor = 'red';
+            document.getElementById('rectangle').style.backgroundColor = 'white';
+            document.getElementById('lne').style.backgroundColor = 'white';
+
+            r = 0;
+            c = 1;
+            l = 0;
+
+            return;
+        }
+        else {
+            document.getElementById('lne').style.backgroundColor = 'red';
+            document.getElementById('cir').style.backgroundColor = 'white';
+            document.getElementById('rectangle').style.backgroundColor = 'white';
+
+            r = 0;
+            c = 0;
+            l = 1;
+
+            return;
+        }
+    }
+
+</script>
+
+</html>
